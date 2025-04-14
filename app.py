@@ -97,6 +97,28 @@ for ad in ads:
             if st.button(f"Reject {ad['id']}"):
                 refund_result = reject_ad(ad)
                 st.warning(refund_result)
+def get_daily_gross_volume(days=30):
+    now = int(time.time())
+    past = now - days * 86400
+
+    payments = stripe.PaymentIntent.list(
+        created={"gte": past},
+        limit=100
+    )
+
+    # Initialize dictionary for each day
+    dates = [(datetime.datetime.now() - datetime.timedelta(days=i)).strftime("%Y-%m-%d") for i in range(days)]
+    daily_volume = {date: 0 for date in dates}
+
+    for p in payments.auto_paging_iter():
+        if p.status != "succeeded":
+            continue
+        day = datetime.datetime.fromtimestamp(p.created).strftime("%Y-%m-%d")
+        if day in daily_volume:
+            daily_volume[day] += p.amount_received / 100  # convert cents to dollars
+
+    # Ensure data is sorted chronologically
+    return dict(sorted(daily_volume.items()))
 
 
 # Stripe metrics
@@ -111,3 +133,10 @@ if trend:
     st.line_chart(df_trend.set_index("Date"))
 else:
     st.info("No successful payments in the last 7 days.")
+
+st.markdown("## Stripe Daily Gross Volume (Last 30 Days)")
+
+daily_volume = get_daily_gross_volume(days=30)
+df_daily = pd.DataFrame(list(daily_volume.items()), columns=["Date", "Gross Volume ($)"])
+
+st.line_chart(df_daily.set_index("Date"))
