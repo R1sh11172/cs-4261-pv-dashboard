@@ -5,7 +5,7 @@ import streamlit as st
 import pandas as pd
 import stripe
 from dotenv import load_dotenv
-from firebase_admin import credentials, firestore, initialize_app
+from firebase_admin import credentials, firestore, initialize_app, auth
 import firebase_admin
 
 # Load environment variables
@@ -140,3 +140,19 @@ daily_volume = get_daily_gross_volume(days=30)
 df_daily = pd.DataFrame(list(daily_volume.items()), columns=["Date", "Gross Volume ($)"])
 
 st.line_chart(df_daily.set_index("Date"))
+
+# Firebase metrics
+st.markdown("## Firebase Metrics")
+page = auth.list_users()
+user_count = 0
+
+while page:
+    user_count += len(page.users)
+    page = page.get_next_page()
+
+st.metric("Total Users", user_count)
+
+# AB Testing Metrics
+st.markdown("## AB Testing Metrics")
+st.metric("Average Rating of A Group", f"{db.collection('ab_testing').where('abGroup', '==', 'A').avg('rating','ratingAvg').get()[0][0].value:.2f}/5")
+st.metric("Average Rating of B Group", f"{db.collection('ab_testing').where('abGroup', '==', 'B').avg('rating','ratingAvg').get()[0][0].value:.2f}/5")
