@@ -1,0 +1,6 @@
+streamlit
+pandas
+stripe
+firebase-admin
+requests
+pillow
