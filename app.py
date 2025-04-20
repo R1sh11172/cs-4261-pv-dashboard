@@ -225,10 +225,20 @@ elif page == "Firebase":
 # ─── PAGE: AB TESTING ──────────────────────────────────────────────────────────
 else:
     st.title("AB Testing Results")
+    st.subheader("Feature: Gemini Packing List (A) vs Webscraped Packing List (B)")
     colA, colB = st.columns(2)
     with colA:
         avgA = db.collection("ab_testing").where("abGroup","==","A").avg("rating","ratingAvg").get()[0][0].value
         st.metric("Group A Rating", f"{avgA:.2f}/5")
     with colB:
         avgB = db.collection("ab_testing").where("abGroup","==","B").avg("rating","ratingAvg").get()[0][0].value
+        st.metric("Group B Rating", f"{avgB:.2f}/5")
+            
+    st.subheader("Feature: Explore Page (A) vs Linked Items on Packing List (B)")
+    colA, colB = st.columns(2)
+    with colA:
+        avgA = db.collection("Sprint5_ab_testing").where("TestGroup","==","A").avg("rating","ratingAvg").get()[0][0].value
+        st.metric("Group A Rating", f"{avgA:.2f}/5")
+    with colB:
+        avgB = db.collection("Sprint5_ab_testing").where("TestGroup","==","B").avg("rating","ratingAvg").get()[0][0].value
         st.metric("Group B Rating", f"{avgB:.2f}/5")
